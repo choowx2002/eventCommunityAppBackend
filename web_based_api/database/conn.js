@@ -1,17 +1,13 @@
-const { MongoClient } = require("mongodb");
+require('dotenv').config();
+const mysql = require('mysql2');
 
-const connectionString = process.env.MONGODB_URI || "";
+// Create a connection to the database
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'cwxcwx123123',
+  database: 'event_community_app'
+});
 
-const client = new MongoClient(connectionString);
-async function connectToDatabase() {
-  try {
-    await client.connect();
-    console.log('Connected to database');
-    return client.db('event_community_app')
-  } catch (e) {
-    console.error('Error connecting to database:', e);
-    process.exit(1);
-  }
-}
-
-module.exports = {connectToDatabase};
+// Export the connection for use in other files
+module.exports = connection;

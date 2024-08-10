@@ -1,21 +1,24 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-require('dotenv').config();
 const http = require('http');
 const userRoutes = require('./routes/user');
 const uploadRoutes = require('./routes/upload');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000;
+const hostname = '192.168.176.13';
 const cors = require('cors');
 
 const server = http.createServer(app);
 
 app.use(cors());
 app.use(bodyParser.json());
+app.get('/', (req, res) => {// for testing purpose
+  res.send('<h1>Hello world</h1>');
+});
 app.use('/api/users', userRoutes);
 app.use('/image', uploadRoutes);
 
 server.listen(port, '0.0.0.0', async () => {
-  console.log(`Server is running on http://${process.env.IPV4}:${port}`);
+  console.log(`Server is running on http://${hostname}:${port}`);
 });
