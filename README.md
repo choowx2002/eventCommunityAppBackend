@@ -7,7 +7,8 @@
     ```
 
 2. install 
-    ```npm install
+    ```
+    npm install
     ```
 
 3. run server
