@@ -1,52 +1,71 @@
-const express = require('express');
-const { getUsers, createUser, getUserById } = require('../models/userModel');
+const express = require("express");
+const {
+  getUsers,
+  createUser,
+  getUserById,
+  deleteUserById,
+  getUserEvents,
+} = require("../models/user.model");
 const router = express.Router();
 
+router.post("/create", async (req, res) => {
+  const { email, password, first_name, last_name, birth, gender } = req.body;
 
-router.get('/', async (req, res) => {
-    try {
-        const users = await getUsers();
-        res.status(200).json(users);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching users', error });
-    }
+  try {
+    const userId = await createUser(
+      email,
+      password,
+      first_name,
+      last_name,
+      birth,
+      gender
+    );
+    res.status(201).send({ userId: userId });
+  } catch (error) {
+    res.status(400).send({ error: error.message });
+  }
 });
 
-
-router.post('/', async (req, res) => {
-    const { name, email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ error: 'User must have an email and a password' });
-    }
-
-    if (!/.+@.+\..+/.test(email)) {
-        return res.status(400).json({ error: 'Invalid email format' });
-    }
-
-    try {
-        await createUser({ name, email, password });
-        res.status(201).json({ message: 'User created successfully' });
-    } catch (e) {
-        if (e.code === 11000) { // Duplicate key error
-            return res.status(409).json({ error: 'Error creating user: Email already exists' });
-        }
-        res.status(500).json({ error: 'Error creating user', details: e.message });
-    }
+router.get("/all", async (req, res) => {
+  try {
+    const users = await getUsers();
+    res.status(201).send({ users });
+  } catch (error) {
+    res.status(400).send({ error: error.message });
+  }
 });
 
-router.get('/:id', async (req, res) => {
-    const userId = parseInt(req.params.id);
+router.get("/userById/:id", async (req, res) => {
+  const userId = req.params.id;
 
-    try {
-        const user = await getUserById(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.status(201).json(user);
-    } catch (e) {
-        console.error(e.message);
-        res.status(500).json({ message: 'Error fetching user', error: e.message });
-    }
+  try {
+    const user = await getUserById(userId);
+    res.status(201).send({ user });
+  } catch (error) {
+    res.status(400).send({ error: error.message });
+  }
+});
+
+router.delete("/delete/:id", async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const message = await deleteUserById(userId);
+    res.status(201).send({ message });
+  } catch (error) {
+    res.status(400).send({ error: error.message });
+  }
+});
+
+router.get("/userEvents", async (req, res) => {
+  const {userId, eventType} = req.query;
+  try {
+    console.log("runrun2")
+    const userEvents = await getUserEvents(userId, eventType);
+    res.status(201).send({ userEvents });
+  } catch (error) {
+    res.status(400).send({ error: error.message });
+  }
 });
 
 module.exports = router;

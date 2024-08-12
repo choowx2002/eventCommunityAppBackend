@@ -1,5 +1,5 @@
 // Connect to the database
-const connection = require('./conn.js');
+const { connection } = require("./conn.js");
 
 // SQL statements for creating tables
 const createUsersTableSQL = `
@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS users (
     birth DATE,
     gender ENUM('male', 'female', 'other') DEFAULT 'other',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL
 );`;
 
 const createCategoriesTableSQL = `
@@ -20,7 +21,8 @@ CREATE TABLE IF NOT EXISTS categories (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL
 );`;
 
 const createEventsTableSQL = `
@@ -42,6 +44,7 @@ CREATE TABLE IF NOT EXISTS events (
     category_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
     FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );`;
@@ -54,6 +57,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     event_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );`;
 
@@ -79,50 +83,38 @@ CREATE TABLE IF NOT EXISTS user_categories (
     UNIQUE KEY (user_id, category_id)
 );`;
 
-const createUserNotificationsTableSQL = `
-CREATE TABLE IF NOT EXISTS user_notifications (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    notification_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE CASCADE,
-    UNIQUE KEY (user_id, notification_id) 
-);`;
-
 // Function to execute each SQL command
 const createTable = (createTableSQL) => {
-    return new Promise((resolve, reject) => {
-        connection.query(createTableSQL, (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            console.log('Table created successfully.');
-            resolve(results);
-        });
+  return new Promise((resolve, reject) => {
+    connection.query(createTableSQL, (error, results) => {
+      if (error) {
+        return reject(error);
+      }
+      console.log("Table created successfully.");
+      resolve(results);
     });
+  });
 };
 
 // Connect to the database and create tables
 connection.connect(async (err) => {
-    if (err) {
-        console.error('Error connecting to the database:', err.stack);
-        return;
-    }
+  if (err) {
+    console.error("Error connecting to the database:", err.stack);
+    return;
+  }
 
-    console.log('Connected to the database.');
+  console.log("Connected to the database.");
 
-    try {
-        await createTable(createUsersTableSQL);
-        await createTable(createCategoriesTableSQL);
-        await createTable(createEventsTableSQL);
-        await createTable(createNotificationsTableSQL);
-        await createTable(createUserEventsTableSQL);
-        await createTable(createUserCategoriesTableSQL);
-        await createTable(createUserNotificationsTableSQL);
-    } catch (error) {
-        console.error('Error creating tables:', error.stack);
-    } finally {
-        connection.end();
-    }
+  try {
+    await createTable(createUsersTableSQL);
+    await createTable(createCategoriesTableSQL);
+    await createTable(createEventsTableSQL);
+    await createTable(createNotificationsTableSQL);
+    await createTable(createUserEventsTableSQL);
+    await createTable(createUserCategoriesTableSQL);
+  } catch (error) {
+    console.error("Error creating tables:", error.stack);
+  } finally {
+    connection.end();
+  }
 });
