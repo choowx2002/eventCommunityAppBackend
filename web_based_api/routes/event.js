@@ -8,7 +8,7 @@ const {
 } = require("../models/event.model");
 const router = express.Router();
 
-// Route to create a new event
+// create event
 router.post("/create", async (req, res) => {
   const {
     title,
@@ -49,7 +49,7 @@ router.post("/create", async (req, res) => {
   }
 });
 
-// Route to get all events
+// get all events
 router.get("/", async (req, res) => {
   try {
     const events = await getEvents();
@@ -59,7 +59,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Route to get an event by ID
+//get event by ID
 router.get("/:id", async (req, res) => {
   const eventId = req.params.id;
 
@@ -71,7 +71,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Route to update an event by ID
+// update event by ID
 router.put("/:id", async (req, res) => {
   const eventId = req.params.id;
   const {
@@ -114,7 +114,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Route to delete an event by ID
+// delete event by ID
 router.delete("/deleteEvent", async (req, res) => {
   const { eventId, userId } = req.query;
   try {

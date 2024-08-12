@@ -7,7 +7,7 @@ const {
 } = require("../models/notification.model");
 const router = express.Router();
 
-
+//create notification
 router.post("/create", async (req, res) => {
   console.log("run")
   const { title, message, event_id } = req.body;
@@ -23,6 +23,7 @@ router.post("/create", async (req, res) => {
   }
 });
 
+//get notification by id
 router.get("/:id", async (req, res) => {
   const notificationId = req.params.id;
 
@@ -34,6 +35,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//get notification by event id
 router.get("/event/:id", async (req, res) => {
   const eventId = req.params.id;
 
@@ -45,10 +47,10 @@ router.get("/event/:id", async (req, res) => {
   }
 });
 
+//get notification by user id
 router.get("/user/:id", async (req, res) => {
   const userId = req.params.id;
-  const {read_from} = req.params;
-
+  const {read_from} = req.query;//timestamp
   try {
     const notification = await getNotificationsByUserId(userId, read_from);
     res.status(200).send({ notification });

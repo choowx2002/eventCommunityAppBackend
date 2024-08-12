@@ -8,6 +8,7 @@ const {
 } = require("../models/user.model");
 const router = express.Router();
 
+// create user
 router.post("/create", async (req, res) => {
   const { email, password, first_name, last_name, birth, gender } = req.body;
 
@@ -26,6 +27,7 @@ router.post("/create", async (req, res) => {
   }
 });
 
+//get all users
 router.get("/all", async (req, res) => {
   try {
     const users = await getUsers();
@@ -35,6 +37,7 @@ router.get("/all", async (req, res) => {
   }
 });
 
+//get user by id
 router.get("/userById/:id", async (req, res) => {
   const userId = req.params.id;
 
@@ -46,6 +49,7 @@ router.get("/userById/:id", async (req, res) => {
   }
 });
 
+//delete user by id
 router.delete("/delete/:id", async (req, res) => {
   const userId = req.params.id;
 
@@ -57,10 +61,10 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
+//get user by id and eventType
 router.get("/userEvents", async (req, res) => {
   const {userId, eventType} = req.query;
   try {
-    console.log("runrun2")
     const userEvents = await getUserEvents(userId, eventType);
     res.status(201).send({ userEvents });
   } catch (error) {

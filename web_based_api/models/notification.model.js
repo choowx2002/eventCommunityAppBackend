@@ -83,8 +83,7 @@ const getNotificationsByUserId = async (id, datetime) => {
       return reject(new Error("Notification ID is required"));
     }
 
-    connectionPromise.execute(
-      `
+    let sql = `
       SELECT n.*
       FROM notifications n
       WHERE n.event_id IN (
@@ -93,8 +92,15 @@ const getNotificationsByUserId = async (id, datetime) => {
         JOIN user_events ue ON e.id = ue.event_id
         WHERE ue.user_id = ?
       )
-      `,
-      [id],
+      `
+    let values = [id]
+    if (datetime) {
+      sql += `AND n.created_at >= ?`;
+      values.push(datetime)
+    }
+    connectionPromise.execute(
+      sql,
+      values,
       (err, result) => {
         if (err) {
           console.log(err.message);

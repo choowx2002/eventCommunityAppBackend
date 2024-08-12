@@ -209,7 +209,7 @@ const updateEventById = async (
   });
 };
 
-const deleteEventById = async (id,userId) => {
+const deleteEventById = async (id, userId) => {
   return new Promise((resolve, reject) => {
     if (!id) {
       return reject(new Error("Event ID is required"));
@@ -227,7 +227,9 @@ const deleteEventById = async (id,userId) => {
         }
 
         if (result.affectedRows === 0) {
-          return reject(new Error("Event not found or User not event's admin."));
+          return reject(
+            new Error("Event not found or User not event's admin.")
+          );
         }
 
         resolve("Event deleted successfully");
