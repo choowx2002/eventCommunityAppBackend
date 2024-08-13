@@ -1,4 +1,5 @@
 const { connectionPromise } = require("../database/conn");
+const { getCategorieByUId } = require("./category.model");
 
 const createUser = async (
   email,
@@ -23,14 +24,15 @@ const createUser = async (
       VALUES (?, ?, ?, ?, ?, ?)
       `,
       [email, password, first_name, last_name, birth, gender],
-      (err, result) => {
+      async (err, result) => {
         if (err) {
           console.log(err.message);
           return reject(new Error(err.message));
         }
 
         if (result && result.insertId) {
-          resolve(result.insertId);
+          const data = await getUserById(result.insertId);
+          resolve(data);
         } else {
           reject(new Error("Failed to insert user"));
         }
@@ -63,10 +65,10 @@ const getUsers = async () => {
 };
 
 const getUserById = async (id) => {
-  if (!id) {
-    reject(new Error("user id is required"));
-  }
   return new Promise((resolve, reject) => {
+    if (!id) {
+      reject(new Error("user id is required"));
+    }
     connectionPromise.execute(
       `
       SELECT * FROM users WHERE id = ?
@@ -89,10 +91,10 @@ const getUserById = async (id) => {
 };
 
 const deleteUserById = async (id) => {
-  if (!id) {
-    reject(new Error("user id is required"));
-  }
   return new Promise((resolve, reject) => {
+    if (!id) {
+      reject(new Error("user id is required"));
+    }
     connectionPromise.execute(
       `
       DELETE FROM users WHERE id = ?
@@ -139,7 +141,7 @@ const getUserEvents = async (id, type) => {
       sql = `
         SELECT * FROM user_events
         JOIN events ON user_events.event_id = events.id
-        WHERE user_events.user_id = ? AND events.start_date <= CURRENT_DATE AND events.end_date >= CURRENT_DATE
+        WHERE user_events.user_id = ? AND events.end_date >= CURRENT_DATE
       `;
       break;
     default:
@@ -158,6 +160,43 @@ const getUserEvents = async (id, type) => {
   });
 };
 
+const updateCategories = (id, cat_ids) => {
+  return new Promise((resolve, reject) => {
+    if (!id) {
+      return reject(new Error("User ID is required"));
+    }
+
+    let sql = `DELETE FROM user_categories WHERE user_id = ?;`;
+
+    connectionPromise.execute(sql, [id], async (err, result) => {
+      if (err) {
+        console.log(err.message);
+        return reject(new Error(err.message));
+      }
+
+      if (cat_ids.length > 0) {
+        const cat_values = cat_ids
+          .map((cat_id) => {
+            return `(${id}, ${cat_id})`;
+          })
+          .join(", ");
+
+        sql = ` INSERT INTO user_categories (user_id, category_id) VALUES ${cat_values};`;
+      }
+      connectionPromise.execute(sql, [], async (err, result) => {
+        if (err) {
+          console.log(err.message);
+          return reject(new Error(err.message));
+        }
+        if (result.affectedRows === 0) {
+          return reject(new Error("User not found"));
+        }
+        const data = await getCategorieByUId(id);
+        resolve(data);
+      });
+    });
+  });
+};
 
 module.exports = {
   createUser,
@@ -165,4 +204,5 @@ module.exports = {
   getUserById,
   deleteUserById,
   getUserEvents,
+  updateCategories,
 };

@@ -20,3 +20,6 @@
    1. visit https://admin.socket.io
    2. enter server URL such as http://localhost:5000 
    3. then you can view all the status.
+
+### API Format
+https://github.com/omniti-labs/jsend

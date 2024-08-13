@@ -5,6 +5,7 @@ const {
   getUserById,
   deleteUserById,
   getUserEvents,
+  updateCategories,
 } = require("../models/user.model");
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.post("/create", async (req, res) => {
   const { email, password, first_name, last_name, birth, gender } = req.body;
 
   try {
-    const userId = await createUser(
+    const user = await createUser(
       email,
       password,
       first_name,
@@ -21,9 +22,9 @@ router.post("/create", async (req, res) => {
       birth,
       gender
     );
-    res.status(201).send({ userId: userId });
+    res.status(200).send({ status: "success", data: { user } });
   } catch (error) {
-    res.status(400).send({ error: error.message });
+    res.status(400).send({ status: "error", message: error.message });
   }
 });
 
@@ -31,9 +32,9 @@ router.post("/create", async (req, res) => {
 router.get("/all", async (req, res) => {
   try {
     const users = await getUsers();
-    res.status(201).send({ users });
+    res.status(200).send({ status: "success", data: { users } });
   } catch (error) {
-    res.status(400).send({ error: error.message });
+    res.status(400).send({ status: "error", message: error.message });
   }
 });
 
@@ -43,9 +44,9 @@ router.get("/userById/:id", async (req, res) => {
 
   try {
     const user = await getUserById(userId);
-    res.status(201).send({ user });
+    res.status(200).send({ status: "success", data: { user } });
   } catch (error) {
-    res.status(400).send({ error: error.message });
+    res.status(400).send({ status: "error", message: error.message });
   }
 });
 
@@ -55,20 +56,32 @@ router.delete("/delete/:id", async (req, res) => {
 
   try {
     const message = await deleteUserById(userId);
-    res.status(201).send({ message });
+    res.status(200).send({ status: "success", data: { message } });
   } catch (error) {
-    res.status(400).send({ error: error.message });
+    res.status(400).send({ status: "error", message: error.message });
   }
 });
 
 //get user by id and eventType
 router.get("/userEvents", async (req, res) => {
-  const {userId, eventType} = req.query;
+  const { userId, eventType } = req.query;
   try {
     const userEvents = await getUserEvents(userId, eventType);
-    res.status(201).send({ userEvents });
+    res.status(200).send({ status: "success", data: { userEvents } });
   } catch (error) {
-    res.status(400).send({ error: error.message });
+    res.status(400).send({ status: "error", message: error.message });
+  }
+});
+
+//add user's interest category
+router.post("/updateCategories/:id", async (req, res) => {
+  const { category_ids } = req.body;
+  const id  = req.params.id;
+  try {
+    const categories = await updateCategories(id, category_ids);
+    res.status(200).send({ status: "success", data: { categories } });
+  } catch (error) {
+    res.status(400).send({ status: "error", message: error.message });
   }
 });
 

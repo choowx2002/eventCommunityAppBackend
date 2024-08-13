@@ -5,7 +5,8 @@ const http = require('http');
 const userRoutes = require('./routes/user');
 const uploadRoutes = require('./routes/upload');
 const eventRoutes = require("./routes/event");
-const notificationRoutes = require("./routes/notification")
+const notificationRoutes = require("./routes/notification");
+const categoriesRoutes = require('./routes/category');
 const app = express();
 const port = 3000;
 const hostname = '192.168.176.13';
@@ -21,6 +22,7 @@ app.get('/', (req, res) => {// for testing purpose
 app.use('/user', userRoutes);
 app.use("/events", eventRoutes);
 app.use("/notification", notificationRoutes);
+app.use("/categories", categoriesRoutes);
 app.use('/image', uploadRoutes);
 
 server.listen(port, '0.0.0.0', async () => {

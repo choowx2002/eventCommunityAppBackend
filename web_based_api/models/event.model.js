@@ -17,8 +17,21 @@ const createEvent = async (
   category_id
 ) => {
   return new Promise((resolve, reject) => {
-    if (!title || !start_date || !admin_id) {
-      return reject(new Error("Title, start date, and admin ID are required"));
+    if (
+      !title ||
+      !start_time ||
+      !end_time ||
+      !start_date ||
+      !end_date ||
+      !admin_id ||
+      !participants_limit ||
+      !address ||
+      !postcode ||
+      !state ||
+      !city ||
+      !category_id
+    ) {
+      return reject(new Error("lack with required data."));
     }
 
     connectionPromise.execute(
@@ -59,10 +72,9 @@ const createEvent = async (
   });
 };
 
-const getEvents = async () => {
+const getEvents = async (limit = 12) => {
   return new Promise((resolve, reject) => {
-    connectionPromise.execute(
-      `
+    let sql = `
         SELECT
             e.*,
             COALESCE(ue.participant, 0) AS participant,
@@ -88,18 +100,22 @@ const getEvents = async () => {
                 categories c
         ) c
         ON
-            e.category_id = c.id;
-      `,
-      [],
-      (err, result) => {
-        if (err) {
-          console.log(err.message);
-          return reject(new Error(err.message));
-        }
+            e.category_id = c.id
+      `;
+    let values;
+    if (limit) {
+      sql += `LIMIT ?`;
+      values = limit;
+    }
 
-        resolve(result);
+    connectionPromise.execute(sql, [values || ""], (err, result) => {
+      if (err) {
+        console.log(err.message);
+        return reject(new Error(err.message));
       }
-    );
+
+      resolve(result);
+    });
   });
 };
 
@@ -118,6 +134,7 @@ const getEventById = async (id) => {
                 COUNT(id)
             FROM
                 user_events
+                WHERE user_events.event_id = ?
         ) AS participants,
         (
             SELECT
@@ -131,7 +148,7 @@ const getEventById = async (id) => {
         WHERE
             id = ?;
       `,
-      [id],
+      [id, id],
       (err, result) => {
         if (err) {
           console.log(err.message);
@@ -170,6 +187,23 @@ const updateEventById = async (
       return reject(new Error("Event ID is required"));
     }
 
+    if (
+      !title ||
+      !start_time ||
+      !end_time ||
+      !start_date ||
+      !end_date ||
+      !admin_id ||
+      !participants_limit ||
+      !address ||
+      !postcode ||
+      !state ||
+      !city ||
+      !category_id
+    ) {
+      return reject(new Error("Lack with required data."));
+    }
+
     connectionPromise.execute(
       `
       UPDATE events
@@ -193,7 +227,7 @@ const updateEventById = async (
         category_id,
         id,
       ],
-      (err, result) => {
+      async (err, result) => {
         if (err) {
           console.log(err.message);
           return reject(new Error(err.message));
@@ -203,7 +237,8 @@ const updateEventById = async (
           return reject(new Error("Event not found"));
         }
 
-        resolve("Event updated successfully");
+        const data = await getEventById(id);
+        resolve(data);
       }
     );
   });
@@ -238,10 +273,44 @@ const deleteEventById = async (id, userId) => {
   });
 };
 
+const getEventsByCatId = async (cat_id, limit = 5) => {
+  return new Promise((resolve, reject) => {
+    if (!cat_id) reject(new Error("category is required"));
+    let sql = `
+    SELECT * 
+    FROM events 
+    WHERE events.category_id = ? LIMIT ?;
+    `;
+
+    connectionPromise.execute(sql, [cat_id, limit], (err, result) => {
+      if (err) reject(new Error(err.message));
+      resolve(result);
+    });
+  });
+};
+
+const getEventsByState = async (state, limit = 5) => {
+  return new Promise((resolve, reject) => {
+    if (!state) reject(new Error("state required"));
+    let sql = `
+    SELECT * 
+    FROM events 
+    WHERE state LIKE ? LIMIT ?;
+    `;
+
+    connectionPromise.execute(sql, [state, limit], (err, result) => {
+      if (err) reject(new Error(err.message));
+      resolve(result);
+    });
+  });
+};
+
 module.exports = {
   createEvent,
   getEvents,
   getEventById,
   updateEventById,
   deleteEventById,
+  getEventsByCatId,
+  getEventsByState,
 };
