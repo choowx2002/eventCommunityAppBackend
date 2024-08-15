@@ -1,19 +1,19 @@
 const mysql = require('mysql2');
-const mysqlP = require('mysql2/promise')
+require("dotenv").config();
 
 // Create a connection to the database
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'cwxcwx123123',
-  database: 'event_community_app'
+  host: process.env.HOST,
+  user: process.env.USER,
+  password: process.env.PASSWORD,
+  database: process.env.DBNAME,
 });
 
 const connectionPromise = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "cwxcwx123123",
-  database: "event_community_app",
+  host: process.env.HOST,
+  user: process.env.USER,
+  password: process.env.PASSWORD,
+  database: process.env.DBNAME,
 });
 
 // Export the connection for use in other files

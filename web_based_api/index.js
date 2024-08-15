@@ -8,8 +8,9 @@ const eventRoutes = require("./routes/event");
 const notificationRoutes = require("./routes/notification");
 const categoriesRoutes = require('./routes/category');
 const app = express();
-const port = 3000;
-const hostname = '192.168.176.13';
+require("dotenv").config(); //to take the .env file constant
+const port = process.env.PORT || 3000;
+const hostname = process.env.Ethernet || "192.168.176.114";
 const cors = require('cors');
 
 const server = http.createServer(app);

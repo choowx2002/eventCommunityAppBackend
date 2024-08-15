@@ -7,6 +7,11 @@ const {
   deleteEventById,
   getEventsByCatId,
   getEventsByState,
+  joinEvent,
+  leaveEvent,
+  checkLatest,
+  checkIsJoin,
+  getParticipants,
 } = require("../models/event.model");
 const { getCategorieNameById } = require("../models/category.model");
 const router = express.Router();
@@ -65,11 +70,15 @@ router.get("/", async (req, res) => {
 
 //get event by ID
 router.get("/:id", async (req, res) => {
-  const eventId = req.params.id;
-
+  const event_id = req.params.id;
+  const {user_id} = req.query;
+  let data = {};
   try {
-    const event = await getEventById(eventId);
-    res.status(200).send({ status: "success", data: { event } });
+    data.event = await getEventById(event_id);
+    if(user_id) {
+      data.isJoined = await checkIsJoin(user_id, event_id)
+    }
+    res.status(200).send({ status: "success", data });
   } catch (error) {
     res.status(400).send({ status: "error", error: error.message });
   }
@@ -149,6 +158,50 @@ router.get("/state/name", async (req, res) => {
   try {
     const events = await getEventsByState(state, limit);
     res.status(200).send({ status: "success", data: { events } });
+  } catch (error) {
+    res.status(400).send({ status: "error", message: error.message });
+  }
+});
+
+// create event
+router.post("/join", async (req, res) => {
+  const { user_id, event_id } = req.body;
+  try {
+    const message = await joinEvent(user_id, event_id);
+    if (message === "User already joined event before.")
+      res.status(201).send({ status: "fail", data: { message } });
+    res.status(201).send({ status: "success", data: { message } });
+  } catch (error) {
+    res.status(400).send({ status: "error", message: error.message });
+  }
+});
+
+router.delete("/leave", async (req, res) => {
+  const { user_id, event_id } = req.query;
+  try {
+    const message = await leaveEvent(user_id, event_id);
+    res.status(201).send({ status: "success", data: { message } });
+  } catch (error) {
+    res.status(400).send({ status: "error", message: error.message });
+  }
+});
+
+router.get("/checkLatest/:id", async (req, res) => {
+  const event_id = req.params.id;
+  const { updated_at } = req.query;
+  try {
+    const data = await checkLatest(event_id, updated_at);
+    res.status(201).send({ status: "success", data });
+  } catch (error) {
+    res.status(400).send({ status: "error", message: error.message });
+  }
+});
+
+router.get("/participants/:id", async (req, res) => {
+  const event_id = req.params.id;
+  try {
+    const data = await getParticipants(event_id);
+    res.status(201).send({ status: "success", data });
   } catch (error) {
     res.status(400).send({ status: "error", message: error.message });
   }

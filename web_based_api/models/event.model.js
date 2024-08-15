@@ -77,7 +77,7 @@ const getEvents = async (limit = 12) => {
     let sql = `
         SELECT
             e.*,
-            COALESCE(ue.participant, 0) AS participant,
+            COALESCE(ue.participant, 0) AS participants,
             c.name as category_name
         FROM EVENTS
             e
@@ -305,6 +305,159 @@ const getEventsByState = async (state, limit = 5) => {
   });
 };
 
+const joinEvent = async (uid, eid) => {
+  return new Promise(async (resolve, reject) => {
+    if (!uid || !eid) {
+      reject(new Error("user id and event id is missing"));
+    }
+    try {
+      const isJoin = await checkIsJoin(uid, eid);
+      if (isJoin) resolve("User already joined event before.");
+      const insertSql = `INSERT INTO user_events (user_id, event_id) VALUES ( ?, ?); `;
+      connectionPromise.execute(insertSql, [uid, eid], (err, res) => {
+        if (err) reject(new Error(err.message));
+        resolve("User successfully join the event");
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const checkIsJoin = async (uid, eid) => {
+  return new Promise((resolve, reject) => {
+    if (!uid || !eid) {
+      reject(new Error("user id and event id is missing"));
+    }
+
+    const checkSql = `SELECT id FROM user_events WHERE user_id = ? AND event_id = ?`;
+
+    connectionPromise.execute(checkSql, [uid, eid], (err, result) => {
+      if (err) reject(new Error(err.message));
+      if (result && result.length > 0) resolve(true);
+
+      resolve(false);
+    });
+  });
+};
+
+const leaveEvent = async (uid, eid) => {
+  return new Promise((resolve, reject) => {
+    if (!uid || !eid) {
+      reject(new Error("user id and event id is missing"));
+    }
+
+    connectionPromise.execute(
+      `
+      DELETE FROM user_events WHERE user_id = ? AND event_id = ?
+      `,
+      [uid, eid],
+      (err, result) => {
+        if (err) {
+          console.log(err.message);
+          return reject(new Error(err.message));
+        }
+
+        if (result.affectedRows === 0) {
+          return reject(new Error("User not join event before."));
+        }
+
+        resolve("User leaves event successfully");
+      }
+    );
+  });
+};
+
+const _getEventUpadateDateById = async (id) => {
+  return new Promise((resolve, reject) => {
+    if (!id) {
+      return reject(new Error("Event ID is required"));
+    }
+
+    connectionPromise.execute(
+      `
+      SELECT
+            EVENTS.id,EVENTS.updated_at
+        FROM EVENTS
+        WHERE
+            id = ?;
+      `,
+      [id],
+      (err, result) => {
+        if (err) {
+          console.log(err.message);
+          return reject(new Error(err.message));
+        }
+
+        if (result.length > 0) {
+          resolve(result[0].updated_at);
+        } else {
+          reject(new Error("Event not found."));
+        }
+      }
+    );
+  });
+};
+
+const getParticipants = async (eid) => {
+  return new Promise((resolve, reject) => {
+    let sql = `
+            SELECT
+                ue.id,
+                u.first_name,
+                u.last_name,
+                u.gender
+            FROM
+                user_events ue
+            LEFT JOIN (SELECT first_name, last_name, gender, id FROM users) u ON ue.user_id = u.id
+            WHERE 
+              ue.event_id = ?
+      `;
+
+    connectionPromise.execute(sql, [eid], (err, result) => {
+      if (err) {
+        console.log(err.message);
+        return reject(new Error(err.message));
+      }
+
+        const res = {
+          participants: result,
+          count: result.length
+        }
+        resolve(res);
+
+    });
+  });
+};
+
+const checkLatest = (eid, date) => {
+  return new Promise(async (resolve, reject) => {
+    if (!eid) reject(new Error("Event id is required"));
+    if (!date || !_isIsoDate(date))
+      reject(new Error("Updated date is missing or invalid format"));
+    try {
+      const update_date = await _getEventUpadateDateById(eid);
+      const old_date = new Date(date).toString();
+      const new_date = new Date(update_date).toString();
+      if (old_date === new_date) {
+        resolve({ isLatest: true, participants: participants });
+      } else {
+        const event = await getEventById(eid);
+        resolve({ isLatest: false, event });
+      }
+    } catch (error) {
+      reject(new Error(error.message));
+    }
+  });
+};
+
+//refer https://stackoverflow.com/a/52869830
+const _isIsoDate = (date) => {
+  if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(date)) return false;
+  const d = new Date(date);
+  return d instanceof Date && !isNaN(d.getTime()) && d.toISOString() === date;
+};
+
 module.exports = {
   createEvent,
   getEvents,
@@ -313,4 +466,9 @@ module.exports = {
   deleteEventById,
   getEventsByCatId,
   getEventsByState,
+  joinEvent,
+  leaveEvent,
+  checkLatest,
+  checkIsJoin,
+  getParticipants,
 };
