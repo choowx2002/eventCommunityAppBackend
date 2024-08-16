@@ -291,6 +291,27 @@ const getEventsByCatId = async (cat_id, limit = 5) => {
   });
 };
 
+const getEventsByTitle = async (title) => {
+  return new Promise((resolve, reject) => {
+    if (!title) reject(new Error("title is required"));
+    let sql = `
+    SELECT *, (
+            SELECT
+                COUNT(id)
+            FROM
+                user_events
+                WHERE user_events.event_id = events.id
+        ) AS participants
+    FROM events 
+    WHERE title LIKE ? ORDER BY created_at DESC;
+    `;
+    connectionPromise.execute(sql, [`%${title}%`], (err, result) => {
+      if (err) reject(new Error(err.message));
+      resolve(result);
+    });
+  });
+};
+
 const getEventsByState = async (state, limit = 5) => {
   return new Promise((resolve, reject) => {
     if (!state) reject(new Error("state required"));
@@ -499,4 +520,5 @@ module.exports = {
   checkLatest,
   checkIsJoin,
   getParticipants,
+  getEventsByTitle,
 };

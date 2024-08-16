@@ -12,6 +12,7 @@ const {
   checkLatest,
   checkIsJoin,
   getParticipants,
+  getEventsByTitle,
 } = require("../models/event.model");
 const { getCategorieNameById } = require("../models/category.model");
 const router = express.Router();
@@ -63,6 +64,17 @@ router.get("/", async (req, res) => {
   try {
     const events = await getEvents(limit);
     res.status(200).send({ status: "success", data: { events, limit } });
+  } catch (error) {
+    res.status(400).send({ status: "error", message: error.message });
+  }
+});
+
+router.get("/search", async (req, res) => {
+  const title = req.query.title;
+
+  try {
+    const events = await getEventsByTitle(title);
+    res.status(200).send({ status: "success", data: { events } });
   } catch (error) {
     res.status(400).send({ status: "error", message: error.message });
   }
