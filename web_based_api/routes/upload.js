@@ -7,10 +7,12 @@ const fs = require("fs");
 router.post("/upload", (req, res) => {
   upload.single("image")(req, res, (err) => {
     if (err) {
+      console.log("err", err)
       return res.status(500).send({ status: "error", message: err.message });
     }
 
     if (!req.file) {
+      console.log("No file uploaded");
       return res
         .status(400)
         .send({ status: "error", message: "No file uploaded" });

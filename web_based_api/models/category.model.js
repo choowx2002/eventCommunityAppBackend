@@ -2,7 +2,7 @@ const { connectionPromise } = require("../database/conn");
 
 const getCategories = () => {
   return new Promise((resolve, reject) => {
-    connectionPromise.execute(`Select * FROM categories`, [], (err, result) => {
+    connectionPromise.execute(`Select c.id, c.name FROM categories c`, [], (err, result) => {
       if (err) reject(new Error(err.message));
       resolve(result);
     });

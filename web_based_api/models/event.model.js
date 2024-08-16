@@ -81,6 +81,7 @@ const getEvents = async (limit = 12) => {
             c.name as category_name
         FROM EVENTS
             e
+        
         LEFT JOIN(
             SELECT
                 event_id,
@@ -101,6 +102,7 @@ const getEvents = async (limit = 12) => {
         ) c
         ON
             e.category_id = c.id
+        ORDER BY e.created_at DESC
       `;
     let values;
     if (limit) {
@@ -299,7 +301,7 @@ const getEventsByState = async (state, limit = 5) => {
     `;
 
     connectionPromise.execute(sql, [state, limit], (err, result) => {
-      if (err) reject(new Error(err.message));
+      if (err) return reject(new Error(err.message));
       resolve(result);
     });
   });
@@ -312,11 +314,40 @@ const joinEvent = async (uid, eid) => {
     }
     try {
       const isJoin = await checkIsJoin(uid, eid);
-      if (isJoin) resolve("User already joined event before.");
+      if (isJoin) {
+        resolve({
+          status: "fail",
+          data: { message: "User already joined event before." },
+        });
+        return
+      }
+      const event = await getEventById(eid);
+      if (!event) {
+        resolve({ status: "fail", data: { message: "Event not found." } });
+        return;
+      }
+      if (event?.participants * 1 >= event.participants_limit * 1) {
+        resolve({ status: "fail", data: { message: "Event is full." } });
+        return;
+      }
+      if (
+        event?.end_date &&
+        new Date(Date.now()) >= new Date(event?.end_date)
+      ) {
+        resolve({
+          status: "fail",
+          data: { message: "Event has ended at." + new Date(event.end_date) },
+        });
+        return;
+      }
+
       const insertSql = `INSERT INTO user_events (user_id, event_id) VALUES ( ?, ?); `;
       connectionPromise.execute(insertSql, [uid, eid], (err, res) => {
         if (err) reject(new Error(err.message));
-        resolve("User successfully join the event");
+        resolve({
+          status: "success",
+          data: { message: "User successfully join the event" },
+        });
       });
     } catch (error) {
       reject(error);
@@ -327,16 +358,14 @@ const joinEvent = async (uid, eid) => {
 const checkIsJoin = async (uid, eid) => {
   return new Promise((resolve, reject) => {
     if (!uid || !eid) {
-      reject(new Error("user id and event id is missing"));
+      return reject(new Error("user id and event id is missing"));
     }
 
     const checkSql = `SELECT id FROM user_events WHERE user_id = ? AND event_id = ?`;
 
     connectionPromise.execute(checkSql, [uid, eid], (err, result) => {
       if (err) reject(new Error(err.message));
-      if (result && result.length > 0) resolve(true);
-
-      resolve(false);
+      return resolve(result && result.length > 0);
     });
   });
 };
@@ -420,12 +449,11 @@ const getParticipants = async (eid) => {
         return reject(new Error(err.message));
       }
 
-        const res = {
-          participants: result,
-          count: result.length
-        }
-        resolve(res);
-
+      const res = {
+        participants: result,
+        count: result.length,
+      };
+      resolve(res);
     });
   });
 };
@@ -434,19 +462,19 @@ const checkLatest = (eid, date) => {
   return new Promise(async (resolve, reject) => {
     if (!eid) reject(new Error("Event id is required"));
     if (!date || !_isIsoDate(date))
-      reject(new Error("Updated date is missing or invalid format"));
+      return reject(new Error("Updated date is missing or invalid format"));
     try {
       const update_date = await _getEventUpadateDateById(eid);
       const old_date = new Date(date).toString();
       const new_date = new Date(update_date).toString();
       if (old_date === new_date) {
-        resolve({ isLatest: true, participants: participants });
+        return resolve({ isLatest: true, participants: participants });
       } else {
         const event = await getEventById(eid);
-        resolve({ isLatest: false, event });
+        return resolve({ isLatest: false, event });
       }
     } catch (error) {
-      reject(new Error(error.message));
+      return reject(new Error(error.message));
     }
   });
 };

@@ -85,4 +85,5 @@ router.post("/updateCategories/:id", async (req, res) => {
   }
 });
 
+//get user categories
 module.exports = router;

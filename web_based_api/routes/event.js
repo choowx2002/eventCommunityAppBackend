@@ -168,9 +168,7 @@ router.post("/join", async (req, res) => {
   const { user_id, event_id } = req.body;
   try {
     const message = await joinEvent(user_id, event_id);
-    if (message === "User already joined event before.")
-      res.status(201).send({ status: "fail", data: { message } });
-    res.status(201).send({ status: "success", data: { message } });
+    res.status(201).send(message);
   } catch (error) {
     res.status(400).send({ status: "error", message: error.message });
   }
