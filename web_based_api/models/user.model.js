@@ -89,6 +89,91 @@ const getUserById = async (id) => {
   });
 };
 
+const getUserByEmail = async (email) => {
+  return new Promise((resolve, reject) => {
+    if (!email) {
+      reject(new Error("user email is required"));
+    }
+    connectionPromise.execute(
+      `
+      SELECT * FROM users WHERE email = ?
+      `,
+      [email],
+      (err, result) => {
+        if (err) {
+          console.log(err.message);
+          return reject(new Error(err.message));
+        }
+
+        if (result.length > 0) {
+          resolve(result[0]);
+        } else {
+          reject(new Error("user not found."));
+        }
+      }
+    );
+  });
+};
+
+const updateUser = async (user_id, first_name, last_name, birth, gender) => {
+  return new Promise((resolve, reject) => {
+    if (!user_id || !first_name || !last_name || !birth || !gender) {
+      return reject(new Error("All fields are required"));
+    }
+
+    connectionPromise.execute(
+      `
+      UPDATE users 
+      SET first_name = ?, last_name = ?, birth = ?, gender = ?
+      WHERE id = ?
+      `,
+      [first_name, last_name, birth, gender, user_id],
+      async (err, result) => {
+        if (err) {
+          console.log(err.message);
+          return reject(new Error(err.message));
+        }
+        if (result && result.affectedRows > 0) {
+          const data = await getUserById(user_id);
+          resolve(data);
+        } else {
+          reject(new Error("Failed to update user"));
+        }
+      }
+    );
+  });
+};
+
+const updatePassword = async (user_id, new_password) => {
+  return new Promise((resolve, reject) => {
+    if (!user_id || !new_password) {
+      return reject(new Error("User ID and new password are required"));
+    }
+
+    connectionPromise.execute(
+      `
+      UPDATE users 
+      SET password = ?
+      WHERE id = ?
+      `,
+      [new_password, user_id],
+      async (err, result) => {
+        if (err) {
+          console.log(err.message);
+          return reject(new Error(err.message));
+        }
+        if (result && result.affectedRows > 0) {
+          const data = await getUserById(user_id);
+          resolve(data);
+        } else {
+          reject(new Error("Failed to update password"));
+        }
+      }
+    );
+  });
+};
+
+
 const deleteUserById = async (id) => {
   return new Promise((resolve, reject) => {
     if (!id) {
@@ -204,4 +289,7 @@ module.exports = {
   deleteUserById,
   getUserEvents,
   updateCategories,
+  updateUser,
+  updatePassword,
+  getUserByEmail,
 };
