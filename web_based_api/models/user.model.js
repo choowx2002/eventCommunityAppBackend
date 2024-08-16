@@ -11,11 +11,11 @@ const createUser = async (
 ) => {
   return new Promise((resolve, reject) => {
     if (!email || !password || !first_name || !last_name || !birth || !gender) {
-      reject(new Error("All fields are required"));
+      return reject(new Error("All fields are required"));
     }
 
     if (!/.+@.+\..+/.test(email)) {
-      reject(new Error("Invalid email format"));
+      return reject(new Error("Invalid email format"));
     }
 
     connectionPromise.execute(
@@ -29,7 +29,6 @@ const createUser = async (
           console.log(err.message);
           return reject(new Error(err.message));
         }
-
         if (result && result.insertId) {
           const data = await getUserById(result.insertId);
           resolve(data);
