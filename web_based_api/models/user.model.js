@@ -209,10 +209,16 @@ const getUserEvents = async (id, type) => {
 
   switch (type) {
     case "own":
-      sql = `
-        SELECT * FROM events
-        WHERE admin_id = ?
-      `;
+      sql = `SELECT *, (
+            SELECT
+                COUNT(id)
+            FROM
+                user_events
+                WHERE user_events.event_id = events.id
+        ) AS participants
+    FROM events 
+    WHERE admin_id = ? ORDER BY created_at DESC;
+    `;
       break;
     case "pass":
       sql = `

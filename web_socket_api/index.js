@@ -53,8 +53,8 @@ io.on('connection', socket => {//when client connect to the socket io
     socket.on('send_notification', (data, callback) => {//when clienr send notification
         try {
             // base on the room/event id emit the event"receive_notification" to the listener in the room
-            socket.to(data.eventId.toString()).emit("receive_notification", data);
-            console.log(`User Id ${socket.id} send notification to event ${data.eventId}: ${data.title} \n ${data.message}`)
+            socket.to(data.event_id.toString()).emit("receive_notification", data);
+            console.log(`User Id ${socket.id} send notification to event ${data.event_id}: ${data.title} \n ${data.message}`)
             callback({ success: true, error: null });
         } catch (error) {
             console.log('error for subsccribe notification :', error);

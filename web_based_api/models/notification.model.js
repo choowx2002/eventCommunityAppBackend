@@ -62,7 +62,7 @@ const getNotificationsByEventId = async (id) => {
 
     connectionPromise.execute(
       `
-      SELECT * FROM notifications WHERE event_id = ?
+      SELECT * FROM notifications WHERE event_id = ? ORDER BY created_at DESC
       `,
       [id],
       (err, result) => {

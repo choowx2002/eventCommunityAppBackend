@@ -456,10 +456,11 @@ const getParticipants = async (eid) => {
                 ue.id,
                 u.first_name,
                 u.last_name,
-                u.gender
+                u.gender,
+                u.email
             FROM
                 user_events ue
-            LEFT JOIN (SELECT first_name, last_name, gender, id FROM users) u ON ue.user_id = u.id
+            LEFT JOIN (SELECT first_name, last_name, gender,email, id FROM users) u ON ue.user_id = u.id
             WHERE 
               ue.event_id = ?
       `;
