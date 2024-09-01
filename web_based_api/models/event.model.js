@@ -451,9 +451,12 @@ const _getEventUpadateDateById = async (id) => {
 
 const getParticipants = async (eid) => {
   return new Promise((resolve, reject) => {
+    if (!eid) {
+      return reject(new Error("Event ID is required"));
+    }
     let sql = `
             SELECT
-                ue.id,
+                u.id,
                 u.first_name,
                 u.last_name,
                 u.gender,
@@ -490,7 +493,7 @@ const checkLatest = (eid, date) => {
       const old_date = new Date(date).toString();
       const new_date = new Date(update_date).toString();
       if (old_date === new_date) {
-        return resolve({ isLatest: true, participants: participants });
+        return resolve({ isLatest: true });
       } else {
         const event = await getEventById(eid);
         return resolve({ isLatest: false, event });

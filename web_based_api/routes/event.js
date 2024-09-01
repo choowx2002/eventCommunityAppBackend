@@ -175,7 +175,6 @@ router.get("/state/name", async (req, res) => {
   }
 });
 
-// create event
 router.post("/join", async (req, res) => {
   const { user_id, event_id } = req.body;
   try {
@@ -210,6 +209,7 @@ router.get("/checkLatest/:id", async (req, res) => {
 router.get("/participants/:id", async (req, res) => {
   const event_id = req.params.id;
   try {
+    await getEventById(event_id);
     const data = await getParticipants(event_id);
     res.status(201).send({ status: "success", data });
   } catch (error) {
