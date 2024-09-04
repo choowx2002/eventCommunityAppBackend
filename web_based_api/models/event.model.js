@@ -110,7 +110,7 @@ const getEvents = async (limit = 12) => {
       values = limit;
     }
 
-    connectionPromise.execute(sql, [values || ""], (err, result) => {
+    connectionPromise.execute(sql, [values.toString() || ""], (err, result) => {
       if (err) {
         console.log(err.message);
         return reject(new Error(err.message));
