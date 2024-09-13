@@ -26,7 +26,7 @@ router.post("/create", async (req, res) => {
       birth,
       gender
     );
-    res.status(200).send({ status: "success", data: { user } });
+    res.status(201).send({ status: "success", data: { user } });
   } catch (error) {
     res.status(400).send({ status: "error", message: error.message });
   }
@@ -69,7 +69,6 @@ router.post("/login", async(req, res)=>{
   }
 })
 
-
 //update user by ID
 router.put("/updateDetails/:id", async (req, res) => {
   const user_id = req.params.id;
@@ -95,7 +94,6 @@ router.put("/updatePassword/:id", async (req, res) => {
     res.status(400).send({ status: "error", message: error.message });
   }
 });
-
 
 //delete user by id
 router.delete("/delete/:id", async (req, res) => {

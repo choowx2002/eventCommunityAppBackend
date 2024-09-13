@@ -220,7 +220,7 @@ const getUserEvents = async (id, type) => {
     WHERE admin_id = ? ORDER BY created_at DESC;
     `;
       break;
-    case "pass":
+    case "past":
       sql = `
         SELECT * FROM user_events
         JOIN events ON user_events.event_id = events.id

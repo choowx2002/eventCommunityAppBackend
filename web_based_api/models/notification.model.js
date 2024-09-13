@@ -57,7 +57,7 @@ const getNotificationById = async (id) => {
 const getNotificationsByEventId = async (id) => {
   return new Promise((resolve, reject) => {
     if (!id) {
-      return reject(new Error("Notification ID is required"));
+      return reject(new Error("Event ID is required"));
     }
 
     connectionPromise.execute(
@@ -80,7 +80,7 @@ const getNotificationsByEventId = async (id) => {
 const getNotificationsByUserId = async (id, datetime) => {
   return new Promise((resolve, reject) => {
     if (!id) {
-      return reject(new Error("Notification ID is required"));
+      return reject(new Error("User ID is required"));
     }
 
     let sql = `
